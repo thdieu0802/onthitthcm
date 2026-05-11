@@ -1,0 +1,267 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ôn Thi TTHCM</title>
+    <style>
+        :root {
+            --primary: #c0392b;
+            --secondary: #2c3e50;
+            --success: #27ae60;
+            --bg: #f9f9f9;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            
+            /* CHẶN BÔI ĐEN COPY THEO YÊU CẦU */
+            -webkit-user-select: none; /* Safari */
+            -ms-user-select: none; /* IE 10 and IE 11 */
+            user-select: none; /* Standard syntax */
+            -webkit-touch-callout: none; /* iOS Safari */
+        }
+        .app-container {
+            width: 100%;
+            max-width: 600px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            padding: 20px;
+            min-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        header {
+            background: var(--primary);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        h1 { margin: 0; font-size: 1.4rem; letter-spacing: 1px;}
+        .progress-bar {
+            height: 10px;
+            background: #eee;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        #progress-fill {
+            height: 100%;
+            background: var(--success);
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .question-section { flex-grow: 1; }
+        .question-text {
+            font-size: 1.15rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: var(--secondary);
+            line-height: 1.4;
+        }
+        .options { display: flex; flex-direction: column; gap: 12px; }
+        .option {
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+            line-height: 1.4;
+            font-size: 1.05rem;
+        }
+        .option:hover { background: #f0f0f0; }
+        .option.correct { background: #d4edda; border-color: #28a745; color: #155724; font-weight: bold; }
+        .option.wrong { background: #f8d7da; border-color: #dc3545; color: #721c24; }
+        
+        .footer-nav {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            background: var(--secondary);
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: background 0.3s;
+        }
+        button:hover { background: #1a252f; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        #score-display { font-weight: bold; color: var(--primary); font-size: 1.1rem;}
+        #result-screen { display: none; text-align: center; flex-grow: 1; }
+        
+        /* Jump to question */
+        .jump-container { margin-top: 15px; text-align: center; font-weight: bold;}
+        .jump-container select { padding: 8px; border-radius: 5px; border: 1px solid #ccc; font-size: 1rem;}
+        
+        /* Creator Badge */
+        .creator-badge {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 2px dashed #ecf0f1;
+            font-size: 0.95rem;
+            color: #7f8c8d;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div id="quiz-screen">
+            <header>
+                <h1>ÔN THI TTHCM</h1>
+            </header>
+            <div class="progress-bar">
+                <div id="progress-fill"></div>
+            </div>
+            <div class="footer-nav">
+                <span id="question-count" style="font-weight: bold; color: #555;">Câu 1 / --</span>
+                <span id="score-display">Đúng: 0</span>
+            </div>
+            
+            <div class="jump-container">
+                <label style="color: #666;">Chuyển nhanh: </label>
+                <select id="jump-select" onchange="jumpToQuestion()"></select>
+            </div>
+            <hr style="border: 0; height: 1px; background: #eee; margin: 20px 0;">
+            
+            <div class="question-section">
+                <div id="q-text" class="question-text">Đang tải...</div>
+                <div id="options-list" class="options"></div>
+            </div>
+            <div class="footer-nav" style="justify-content: center; margin-top: 30px;">
+                <button id="next-btn" onclick="nextQuestion()" disabled style="width: 100%;">Câu tiếp theo &rarr;</button>
+            </div>
+        </div>
+
+        <div id="result-screen">
+            <h2 style="color: var(--primary); margin-top: 40px;">Hoàn Thành Bài Thi!</h2>
+            <div style="font-size: 4rem; margin: 20px 0; color: var(--success); font-weight: 800;" id="final-result"></div>
+            <p id="feedback" style="font-size: 1.2rem; color: #555; margin-bottom: 30px;"></p>
+            <button onclick="location.reload()" style="background: var(--primary); width: 100%; padding: 15px;">Làm lại từ đầu</button>
+        </div>
+        
+        <!-- Dấu ấn người tạo app -->
+        <div class="creator-badge">
+            © @THDieu
+        </div>
+    </div>
+
+    <script>
+        // CHẶN CHUỘT PHẢI VÀ PHÍM TẮT COPY
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        document.addEventListener('copy', event => event.preventDefault());
+        document.addEventListener('cut', event => event.preventDefault());
+        document.addEventListener('paste', event => event.preventDefault());
+
+        const quizData = [{"q": "Nguồn gốc lý luận quyết định bản chất tư tưởng Hồ Chí Minh là:", "a": ["A. Nho giáo", "B. Phật giáo", "C. Chủ nghĩa Mác-Lênin", "D. Chủ nghĩa dân tộc"], "c": 2}, {"q": "Theo Người, độc lập dân tộc phải đi đôi với:", "a": ["A. Tư bản chủ nghĩa", "B. Chủ nghĩa xã hội", "C. Phong kiến", "D. Quân chủ"], "c": 1}, {"q": "Giá trị truyền thống nào là cơ sở quan trọng nhất giúp Hồ Chí Minh xây dựng hệ thống quan điểm của mình?", "a": ["A. Chủ nghĩa yêu nước", "B. Tinh thần đoàn kết, có kết cộng đồng", "C. Chủ nghĩa nhân văn của dân tộc", "D. Truyền thống cần cù, yêu lao động"], "c": 0}, {"q": "Luận điểm: \"Dân ta có một lòng nồng nàn yêu nước...\" là của ai?", "a": ["A. Phan Bội Châu", "B. Phan Châu Trinh", "C. Hoàng Hoa Thám", "D. Hồ Chí Minh"], "c": 3}, {"q": "Cách mạng Tháng Mười Nga nổ ra vào năm nào?", "a": ["A. 1915", "B. 1916", "C. 1917", "D. 1918"], "c": 2}, {"q": "Quá trình hình thành và phát triển tư tưởng Hồ Chí Minh được chia thành mấy giai đoạn?", "a": ["A. 4 giai đoạn", "B. 5 giai đoạn", "C. 6 giai đoạn", "D. 7 giai đoạn"], "c": 1}, {"q": "Giá trị của tư tưởng Hồ Chí Minh đối với dân tộc là?", "a": ["A. Tài sản tinh thần vô giá của dân tộc Việt Nam", "B. Phản ánh khát vọng thời đại", "C. Tìm ra các giải pháp đấu tranh giải phóng loài người", "D. Cổ vũ các dân tộc đấu tranh trong sự nghiệp giải phóng"], "c": 0}, {"q": "Hồ Chí Minh bắt gặp Sơ thảo lần thứ nhất luận cương về những vấn đề dân tộc và vấn đề thuộc địa khi nào?", "a": ["A. 7/1920", "B. 12/1920", "C. 6/1923", "D. 2/1930"], "c": 0}, {"q": "Tư tưởng vị tha, từ bi bác ái, cứu khổ cứu nạn là ưu điểm của học thuyết, tôn giáo nào?", "a": ["A. Nho giáo", "B. Phật giáo", "C. Thiên chúa giáo", "D. Hồi giáo"], "c": 1}, {"q": "Đoạn trích sau đây thuộc tác phẩm nào của Hồ Chí Minh: \"Bây giờ học thuyết nhiều... cách mạng nhất là chủ nghĩa Lênin\"?", "a": ["A. Bản án chế độ thực dân Pháp", "B. Đường cách mệnh", "C. Con đường dẫn tôi đến chủ nghĩa Lênin", "D. Cương lĩnh chính trị đầu tiên"], "c": 1}, {"q": "Theo Hồ Chí Minh, trong cuộc cách mạng giải phóng dân tộc, lực lượng nào \"là gốc cách mệnh\"?", "a": ["A. Công nhân", "B. Trí thức", "C. Nông dân", "D. Công - nông"], "c": 3}, {"q": "Trong các luận điểm sau đây, luận điểm nào của Hồ Chí Minh?", "a": ["A. \"Tất cả mọi người đều sinh ra có quyền bình đẳng...\"", "B. \"Người ta sinh ra tự do và bình đẳng về quyền lợi...\"", "C. \"Tất cả các dân tộc trên thế giới đều sinh ra bình đẳng, dân tộc nào cũng có quyền sống, quyền sung sướng và quyền tự do\"."], "c": 2}, {"q": "Theo Hồ Chí Minh, quá độ lên chủ nghĩa xã hội ở Việt Nam là quá độ:", "a": ["A. Trực tiếp lên chủ nghĩa xã hội", "B. Gián tiếp lên chủ nghĩa xã hội", "C. Đi thẳng lên chủ nghĩa xã hội", "D. Bỏ qua thời kỳ tư bản chủ nghĩa"], "c": 1}, {"q": "Bài thơ: \"Gạo đem vào giã bao đau đớn...\" nằm trong tác phẩm nào?", "a": ["A. Ca binh lính", "B. Nhật ký trong tù", "C. Bài ca du kích", "D. Ca sợi chỉ"], "c": 1}, {"q": "Luận điểm: \"Cách mệnh trước hết phải có đảng cách mệnh... Đảng có vững, cách mệnh mới thành công...\" nằm trong tác phẩm:", "a": ["A. Bản án chế độ thực dân Pháp", "B. Di chúc", "C. Cương lĩnh chính trị đầu tiên", "D. Đường cách mệnh"], "c": 3}, {"q": "Theo Hồ Chí Minh, cách mạng giải phóng dân tộc muốn thắng lợi phải đi theo con đường:", "a": ["A. Cách mạng tư sản", "B. Cách mạng vô sản", "C. Cách mạng xã hội chủ nghĩa", "D. Cách mạng ruộng đất"], "c": 1}, {"q": "Chọn phương án trả lời đúng với tư tưởng Hồ Chí Minh:", "a": ["A. Thắng lợi đồng thời với chính quốc", "B. Phụ thuộc vào chính quốc", "C. Song song với cách mạng tư sản", "D. Cách mạng giải phóng dân tộc ở thuộc địa có khả năng giành được thắng lợi trước cách mạng vô sản ở chính quốc."], "c": 3}, {"q": "\"Toàn thể dân tộc Việt Nam quyết đem tất cả tinh thần và lực lượng...\" trích từ:", "a": ["A. Thư kêu gọi Tổng khởi nghĩa", "B. Tuyên ngôn độc lập (1945)", "C. Lời kêu gọi toàn quốc kháng chiến", "D. Thư gửi đồng bào Nam bộ"], "c": 1}, {"q": "Vai trò lãnh đạo của giai cấp công nhân do yếu tố nào quy định?", "a": ["A. Do ý muốn của Đảng", "B. Do số lượng", "C. Do địa vị kinh tế, chính trị, xã hội khách quan của giai cấp công nhân", "D. Do kinh tế"], "c": 2}, {"q": "Theo Hồ Chí Minh, bản chất của Nhà nước ta là gì?", "a": ["A. Nhà nước của giai cấp tư sản", "B. Nhà nước của nhân dân lao động", "C. Nhà nước quản chủ lập hiến", "D. Nhà nước liên bang"], "c": 1}, {"q": "Nhà nước \"của dân\" nghĩa là gì?", "a": ["A. Nhà nước do Đảng lãnh đạo", "B. Mọi quyền lực thuộc về nhân dân", "C. Nhà nước quản lý xã hội", "D. Nhà nước do Quốc hội bầu"], "c": 1}, {"q": "Nội dung \"do dân\" được hiểu là:", "a": ["A. Nhân dân tham gia quản lý Nhà nước", "B. Nhà nước ban hành luật", "C. Nhà nước phục vụ nhân dân", "D. Nhà nước quản lý kinh tế"], "c": 0}, {"q": "\"Vì dân\" thể hiện rõ nhất ở điểm nào?", "a": ["A. Có quân đội mạnh", "B. Bảo vệ giai cấp thống trị", "C. Nhà nước phục vụ lợi ích và hạnh phúc của nhân dân", "D. Có nhiều cơ quan quyền lực"], "c": 2}, {"q": "Hồ Chí Minh yêu cầu cán bộ, công chức phải là:", "a": ["A. Có quyền lực cao", "B. Là \"công bộc\" của dân", "C. Được hưởng đặc quyền", "D. Không cần chịu trách nhiệm"], "c": 1}, {"q": "Nguyên tắc tổ chức và hoạt động của Nhà nước là gì?", "a": ["A. Tập trung quan liêu", "B. Tập trung dân chủ", "C. Tự do tuyệt đối", "D. Phân quyền cứng nhắc"], "c": 1}, {"q": "Để xây dựng Nhà nước trong sạch cần chống gì?", "a": ["A. Nghèo đói", "B. Lạc hậu", "C. Tham ô, lãng phí, quan liêu", "D. Thiếu lao động"], "c": 2}, {"q": "Vai trò của pháp luật trong Nhà nước là:", "a": ["A. Công cụ quản lý xã hội", "B. Chỉ mang tính hình thức", "C. Không cần thiết", "D. Phục vụ thiểu số"], "c": 0}, {"q": "Theo Hồ Chí Minh, quyền lực Nhà nước thuộc về ai?", "a": ["A. Chính phủ", "B. Quốc hội", "C. Nhân dân", "D. Đảng"], "c": 2}, {"q": "Lực lượng của khối đại đoàn kết dân tộc bao gồm:", "a": ["A. Chỉ công và nông", "B. Chỉ trí thức", "C. Tất cả các giai cấp, tầng lớp, dân tộc, tôn giáo", "D. Chỉ đảng viên"], "c": 2}, {"q": "Nền tảng của khối đại đoàn kết dân tộc là:", "a": ["A. Công nhân", "B. Nông dân", "C. Liên minh công - nông - trí thức", "D. Doanh nhân"], "c": 2}, {"q": "Hình thức tổ chức của khối đại đoàn kết dân tộc là gì?", "a": ["A. Chính phủ", "B. Quốc hội", "C. Mặt trận dân tộc thống nhất", "D. Quân đội"], "c": 2}, {"q": "Đoàn kết phải dựa trên nguyên tắc nào?", "a": ["A. Tự do tuyệt đối", "B. Hiệp thương dân chủ", "C. Áp đặt", "D. Cạnh tranh"], "c": 1}, {"q": "Câu nói thể hiện rõ nhất tư tưởng đại đoàn kết?", "a": ["A. \"Không có gì quý hơn độc lập, tự do\"", "B. \"Đoàn kết, đoàn kết, đại đoàn kết – Thành công, thành công, đại thành công\"", "C. \"Cần, kiệm, liêm, chính\"", "D. \"Dĩ bất biến, ứng vạn biến\""], "c": 1}, {"q": "Để xây dựng khối đại đoàn kết cần chống tư tưởng nào?", "a": ["A. Yêu nước", "B. Cục bộ, hẹp hòi", "C. Hợp tác", "D. Đổi mới"], "c": 1}, {"q": "Vai trò của Đảng trong khối đại đoàn kết dân tộc là:", "a": ["A. Đứng ngoài", "B. Lãnh đạo", "C. Phụ thuộc nhân dân", "D. Không có vai trò"], "c": 1}, {"q": "Theo Hồ Chí Minh, văn hóa được hiểu là:", "a": ["A. Chỉ là nghệ thuật", "B. Toàn bộ những giá trị vật chất và tinh thần do con người sáng tạo ra", "C. Chỉ là giáo dục", "D. Chỉ là phong tục tập quán"], "c": 1}, {"q": "Nền văn hóa mới có tính chất gì?", "a": ["A. Dân tộc, khoa học, đại chúng", "B. Hiện đại, hội nhập, toàn cầu", "C. Truyền thống, hiện đại, phát triển", "D. Khoa học, kỹ thuật, công nghệ"], "c": 0}, {"q": "Đạo đức theo tư tưởng Hồ Chí Minh là gì?", "a": ["A. Quy định của pháp luật", "B. Chuẩn mực xã hội", "C. Gốc của người cách mạng", "D. Công cụ quản lý"], "c": 2}, {"q": "Nội dung cốt lõi của đạo đức cách mạng là:", "a": ["A. Trung với nước, hiếu với dân", "B. Giàu có, thành đạt", "C. Tự do cá nhân", "D. Quyền lực chính trị"], "c": 0}, {"q": "Nguyên tắc xây dựng đạo đức là:", "a": ["A. Nói đi đôi với làm", "B. Nói nhiều làm ít", "C. Chỉ cần lý luận", "D. Không cần thực hành"], "c": 0}, {"q": "Phải chống những gì trong xây dựng đạo đức?", "a": ["A. Nghèo đói", "B. Tham ô, lãng phí, quan liêu", "C. Lạc hậu", "D. Thiếu học"], "c": 1}, {"q": "Vì sao đạo đức được coi là \"gốc\" của người cách mạng?", "a": ["A. Quyết định trình độ học vấn", "B. Vì đạo đức định hướng hành vi và quyết định sự bền vững của cách mạng", "C. Thay thế pháp luật", "D. Chỉ cần trong thời chiến"], "c": 1}, {"q": "Một cán bộ có năng lực nhưng thiếu đạo đức sẽ dẫn đến:", "a": ["A. Vẫn hoàn thành tốt nhiệm vụ", "B. Có thể gây hại cho Đảng và nhân dân", "C. Không ảnh hưởng gì", "D. Chỉ ảnh hưởng cá nhân"], "c": 1}, {"q": "Việc \"nói đi đôi với làm\" có ý nghĩa sâu sắc nhất ở:", "a": ["A. Tăng tính hình thức", "B. Xây dựng niềm tin của nhân dân", "C. Giảm trách nhiệm", "D. Tránh kiểm tra"], "c": 1}, {"q": "Vận dụng tư tưởng HCM về văn hóa hiện nay cần:", "a": ["A. Giữ nguyên mọi truyền thống", "B. Tiếp thu có chọn lọc tinh hoa văn hóa nhân loại", "C. Phủ nhận văn hóa dân tộc", "D. Chỉ phát triển kinh tế"], "c": 1}, {"q": "Mối quan hệ giữa \"đức\" và \"tài\" là:", "a": ["A. Tài quan trọng hơn", "B. Đức quan trọng hơn tài, nhưng cần cả hai", "C. Chỉ cần tài", "D. Không cần cả hai"], "c": 1}, {"q": "Hành vi phù hợp với chuẩn mực \"liêm\" là:", "a": ["A. Nhận quà giải quyết việc", "B. Dùng của công cho việc tư", "C. Sống trong sạch, không tham lam", "D. Lợi dụng chức vụ"], "c": 2}, {"q": "Vai trò của văn hóa trong phát triển xã hội:", "a": ["A. Văn hóa đứng ngoài", "B. Văn hóa là động lực và mục tiêu của phát triển", "C. Chỉ phục vụ giải trí", "D. Không quan trọng"], "c": 1}, {"q": "Việc rèn luyện đạo đức cần thực hiện:", "a": ["A. Theo phong trào", "B. Liên tục, suốt đời, trong thực tiễn", "C. Chỉ trong học tập", "D. Khi có kiểm tra"], "c": 1}, {"q": "Đảng Cộng sản Việt Nam ra đời là sự kết hợp của:", "a": ["A. Mác-Lênin + Phong trào công nhân", "B. Mác-Lênin + Phong trào yêu nước", "C. Chủ nghĩa Mác – Lênin, phong trào công nhân và phong trào yêu nước", "D. Công nhân + Trí thức"], "c": 2}, {"q": "Vai trò của Đảng là:", "a": ["A. Quản lý kinh tế", "B. Lãnh đạo cách mạng", "C. Tham gia xã hội", "D. Phụ thuộc nhân dân"], "c": 1}, {"q": "Đảng vững mạnh trước hết phải vững về:", "a": ["A. Tổ chức", "B. Kinh tế", "C. Chính trị và tư tưởng", "D. Quân sự"], "c": 2}, {"q": "Mối quan hệ giữa Đảng và nhân dân là:", "a": ["A. Đảng đứng trên", "B. Đảng là \"người lãnh đạo\" đồng thời là \"người đầy tớ trung thành của nhân dân\"", "C. Đảng tách rời", "D. Nhân dân phụ thuộc"], "c": 1}, {"q": "Nội dung cốt lõi của nguyên tắc tập trung dân chủ:", "a": ["A. Tập trung tuyệt đối", "B. Dân chủ hình thức", "C. Kết hợp dân chủ rộng rãi với kỷ luật nghiêm minh", "D. Không cần tổ chức"], "c": 2}, {"q": "Để Đảng trong sạch, vững mạnh cần chú trọng:", "a": ["A. Tăng quyền lực", "B. Chống tham ô, quan liêu, thoái hóa", "C. Phát triển kinh tế", "D. Mở rộng tổ chức"], "c": 1}, {"q": "Chỉnh đốn Đảng là nhiệm vụ thường xuyên vì:", "a": ["A. Đảng luôn thay đổi", "B. Vì để giữ vững vai trò lãnh đạo và tránh suy thoái", "C. Vì pháp luật", "D. Vì áp lực quốc tế"], "c": 1}, {"q": "Cán bộ, đảng viên phải hội đủ:", "a": ["A. Quyền lực và địa vị", "B. Đức và tài, trong đó đức là gốc", "C. Học vấn cao", "D. Kinh nghiệm lâu năm"], "c": 1}, {"q": "Vận dụng tư tưởng HCM về Đảng hiện nay cần:", "a": ["A. Tăng số lượng", "B. Giữ vững bản chất cách mạng, nâng cao năng lực lãnh đạo và sức chiến đấu", "C. Giảm vai trò lãnh đạo", "D. Tách rời nhân dân"], "c": 1}, {"q": "Con người trong tư tưởng HCM được nhìn nhận là:", "a": ["A. Chỉ là cá thể sinh học", "B. Là tổng hòa các mối quan hệ xã hội", "C. Chỉ là lực lượng lao động", "D. Không quan trọng"], "c": 1}, {"q": "Vận dụng tư tưởng HCM về con người hiện nay cần:", "a": ["A. Chỉ phát triển kinh tế", "B. Phát triển con người toàn diện", "C. Giảm giáo dục", "D. Tăng bất bình đẳng"], "c": 1}, {"q": "Mối quan hệ giữa độc lập dân tộc và CNXH:", "a": ["A. Tách rời", "B. Độc lập là duy nhất", "C. Gắn bó chặt chẽ với nhau", "D. Không liên quan"], "c": 2}, {"q": "Chủ tịch HCM nói: \"1 dân tộc dốt là 1 dân tộc [...]\"", "a": ["A. Chậm phát triển", "B. Yếu", "C. Lạc hậu", "D. Không phát triển"], "c": 1}, {"q": "Nguyên tắc xây dựng đạo đức mới:", "a": ["A. Nói đi đôi với làm", "B. Nói trước làm sau", "C. Nói 1 đường làm 1 nẻo", "D. Nhân dân làm theo chỉ đạo"], "c": 0}, {"q": "Đức tính ví như trời có bốn mùa, đất có bốn phương:", "a": ["A. Cần, kiệm, liêm, chính", "B. Trung - Hiếu", "C. Chí công vô tư", "D. Có nghĩa có tình"], "c": 0}, {"q": "Trong chế độ XHCN: \"Chủ nghĩa xã hội là lấy nhà máy, xe lửa, ngân hàng làm...\"", "a": ["A. Công hữu", "B. Sở hữu chung", "C. Của chung", "D. Tư hữu"], "c": 2}, {"q": "Đảng Cộng sản Việt Nam là Đảng của:", "a": ["A. Giai cấp công nhân", "B. Giai cấp nông dân", "C. Nhân dân lao động", "D. Giai cấp công nhân, nhân dân lao động và cả dân tộc Việt Nam"], "c": 3}, {"q": "Một trong những vai trò của đại đoàn kết dân tộc:", "a": ["A. Nhiệm vụ hàng đầu", "B. Nhiệm vụ quan trọng nhất", "C. Là mục tiêu, nhiệm vụ hàng đầu của cách mạng Việt Nam", "D. Là mục tiêu"], "c": 2}, {"q": "Nền tảng của khối đại đoàn kết dân tộc là:", "a": ["A. Liên minh công – nông", "B. Liên minh công – nông – trí thức", "C. Liên minh công – nông và các lực lượng khác", "D. Liên minh công – nông và tầng lớp khác"], "c": 1}, {"q": "Nhà nước ta mang bản chất của:", "a": ["A. Toàn dân tộc", "B. Giai cấp công – nông", "C. Giai cấp công nhân", "D. Giai cấp nông dân"], "c": 2}, {"q": "Nhà nước vì dân là nhà nước:", "a": ["A. Tất cả vì lợi ích nhân dân", "B. Do nhân dân làm chủ", "C. Phục vụ nhân dân", "D. Chăm lo mọi mặt đời sống"], "c": 0}, {"q": "Theo Hồ Chí Minh: \"... là gốc của người cách mạng\"", "a": ["A. Tài năng", "B. Bản lĩnh", "C. Đạo đức", "D. Phẩm chất"], "c": 2}, {"q": "Câu nói \"Đoàn kết là điểm mẹ...\" nói về:", "a": ["A. Vai trò của đại đoàn kết dân tộc", "B. Nội dung", "C. Hình thức", "D. Nguyên tắc"], "c": 0}, {"q": "Quá trình hình thành và phát triển TTHCM chia làm:", "a": ["A. 4 giai đoạn", "B. 5 giai đoạn", "C. 6 giai đoạn", "D. 7 giai đoạn"], "c": 1}, {"q": "Giá trị của TTHCM đối với dân tộc:", "a": ["A. Tài sản tinh thần vô giá của dân tộc Việt Nam", "B. Phản ánh khát vọng", "C. Giải pháp giải phóng loài người", "D. Cổ vũ các dân tộc"], "c": 0}, {"q": "Bài thơ: \"Cán bộ xung trước, Làng nước theo sau...\" đề cập đến:", "a": ["A. Nguyên tắc xây dựng đạo đức mới", "B. Vai trò", "C. Chuẩn mực", "D. Sức mạnh"], "c": 0}, {"q": "Con đường cách mạng Việt Nam:", "a": ["A. Cách mạng tư sản", "B. Cách mạng vô sản", "C. Cách mạng xã hội chủ nghĩa", "D. Cách mạng ruộng đất"], "c": 1}, {"q": "\"Quyết đem ... để giữ vững quyền tự do, độc lập ấy\":", "a": ["A. Sức lực", "B. Tinh thần và lực lượng", "C. Tinh hoa và văn hóa", "D. Tất cả tinh thần và lực lượng, tính mạng và của cải."], "c": 3}, {"q": "Hình tượng chỉ chủ nghĩa tư bản:", "a": ["A. Con bạch tuộc", "B. Con đỉa hai vòi", "C. Chim đại bàng", "D. Chim cánh cụt"], "c": 1}, {"q": "Muốn xây dựng CNXH trước hết cần có:", "a": ["A. Khoa học kỹ thuật", "B. Kinh tế phát triển", "C. Con người toàn diện", "D. Con người xã hội chủ nghĩa."], "c": 3}, {"q": "\"Rằng đây bốn biển một nhà... Đều là anh em\":", "a": ["A. Lao động thế giới", "B. Bốn phương vô sản", "C. Tứ hải", "D. Vàng đen trắng đỏ"], "c": 1}, {"q": "Luận điểm ĐCSVN là sản phẩm của Mác-Lênin + Phong trào công nhân + Phong trào yêu nước là:", "a": ["A. Xác định nhiệm vụ", "B. Xác định bản chất", "C. Xác định nguồn gốc ra đời của Đảng", "D. Xác định năng lực"], "c": 2}, {"q": "Yếu tố quyết định giá trị con người:", "a": ["A. Địa vị", "B. Tài sản", "C. Đạo đức và năng lực", "D. Quyền lực"], "c": 2}, {"q": "Mối quan hệ giữa cá nhân và tập thể:", "a": ["A. Triệt tiêu cá nhân", "B. Tập thể không quan trọng", "C. Hài hòa giữa lợi ích cá nhân và lợi ích tập thể", "D. Đề cao cá nhân"], "c": 2}, {"q": "Điền vào chỗ trống (Đảng có vững cách mệnh mới thành công, cũng như người cầm lái có vững...):", "a": ["A. Cách mệnh; thuyền chạy", "B. Cách mạng; thuyền chạy", "C. Cách mạng; thuyền mới chạy", "D. Cách mệnh; thuyền mới chạy"], "c": 3}, {"q": "Một trong những vai trò của đại đoàn kết dân tộc:", "a": ["A. Nhiệm vụ hàng đầu", "B. Nhiệm vụ quan trọng nhất", "C. Là mục tiêu, nhiệm vụ hàng đầu của cách mạng, của dân tộc", "D. Là mục tiêu"], "c": 2}, {"q": "Nền tảng của khối đại đoàn kết dân tộc:", "a": ["A. Liên minh công – nông", "B. Liên minh công – nông – lao động trí óc", "C. Liên minh công – nông và lực lượng khác", "D. Liên minh công – nông và tầng lớp khác"], "c": 1}, {"q": "Đọc Sơ thảo luận cương của Lênin vào:", "a": ["A. 7/1917", "B. 7/1920", "C. 7/1918", "D. 7/1922"], "c": 1}, {"q": "\"Cũng như ngọc càng mài càng sáng, vàng càng luyện càng trong\" nằm trong:", "a": ["A. Đường Cách mệnh", "B. Đạo đức cách mạng", "C. Nâng cao đạo đức cách mạng...", "D. Liên Xô vĩ đại"], "c": 1}, {"q": "\"Tất cả các dân tộc trên thế giới đều sinh ra bình đẳng...\" trích từ:", "a": ["A. Tuyên ngôn độc lập (1945)", "B. Bản án chế độ thực dân Pháp", "C. Đường Cách mệnh", "D. Lời kêu gọi toàn quốc kháng chiến"], "c": 0}, {"q": "Nhà nước vì dân là nhà nước:", "a": ["A. Tất cả đều vì lợi ích của nhân dân.", "B. Do nhân dân làm chủ.", "C. Phục vụ nhân dân.", "D. Chăm lo mọi mặt đời sống nhân dân."], "c": 0}, {"q": "Văn hóa có mối quan hệ như thế nào với chính trị?", "a": ["A. Phục vụ chính trị", "B. Mở đường cho chính trị", "C. Độc lập", "D. Văn hóa nằm trong chính trị"], "c": 3}, {"q": "\"Văn hóa, nghệ thuật cũng là một mặt trận\" nói về:", "a": ["A. Vai trò và vị trí của văn hóa", "B. Chức năng", "C. Tính chất", "D. Vị trí"], "c": 0}, {"q": "Luận điểm \"Cách mệnh trước hết phải có đảng cách mệnh...\" nằm trong:", "a": ["A. Bản án chế độ thực dân Pháp", "B. Di chúc", "C. Cương lĩnh đầu tiên", "D. Đường cách mệnh"], "c": 3}, {"q": "Chọn câu trả lời đúng nhất:", "a": ["A. Đảng của giai cấp công nhân", "B. Đảng của nhân dân lao động", "C. Đảng cộng sản Việt Nam là đảng của giai cấp công nhân, của nhân dân lao động và của dân tộc Việt Nam", "D. Đảng của giai cấp lao động"], "c": 2}, {"q": "\"Biết đồng sức, Biết đồng lòng...\" nói về:", "a": ["A. Vai trò của đại đoàn kết dân tộc", "B. Nguyên tắc", "C. Nội dung", "D. Hình thức"], "c": 0}, {"q": "\"Đoàn kết, đoàn kết, đại đoàn kết...\" nói về:", "a": ["A. Nguyên tắc", "B. Nội dung", "C. Vai trò của đại đoàn kết dân tộc", "D. Hình thức"], "c": 2}, {"q": "\"Cũng như sông thì có nguồn mới có nước...\" trích từ:", "a": ["A. Đường Kách mệnh", "B. Chỉnh huấn chính trị, sát hạch lý luận, cán bộ", "C. Di chúc", "D. Hồ Chí Minh toàn tập, tập 5"], "c": 3}, {"q": "\"Trời có bốn mùa... Người có bốn đức...\" trích từ:", "a": ["A. Đạo đức cách mạng", "B. Bài nói chuyện tại trường Đại học nhân dân Việt Nam năm 1956", "C. Di chúc", "D. Hồ Chí Minh toàn tập"], "c": 3}, {"q": "\"Muốn cứu nước và ... không có con đường nào khác con đường...\"", "a": ["A. Giải phóng dân tộc; cách mạng vô sản", "B. Giải phóng dân tộc; cách mạng tư sản", "C. Giành độc lập; cách mạng vô sản", "D. Giành độc lập, tự do; cách mạng văn hóa"], "c": 0}, {"q": "Đại hội nào khẳng định Tư tưởng Hồ Chí Minh là nền tảng kim chỉ nam?", "a": ["A. Đại hội VII (1991)", "B. Đại hội VIII", "C. Đại hội IX", "D. Đại hội X"], "c": 0}, {"q": "\"Quyết đem ... để giữ vững quyền tự do, độc lập ấy\":", "a": ["A. Tinh thần và lực lượng", "B. Toàn bộ sức lực", "C. Tất cả tinh thần và lực lượng, tính mạng và của cải", "D. Toàn bộ của cải"], "c": 2}, {"q": "\"tôi chỉ có một ham muốn... là làm sao cho nước ta hoàn toàn được ..., dân ta hoàn toàn tự do...\":", "a": ["A. Nhanh chóng độc lập", "B. Thắng lợi", "C. độc lập", "D. Giải phóng"], "c": 2}, {"q": "Bắt gặp Sơ thảo luận cương của Lênin khi nào?", "a": ["A. 7/1920", "B. 12/1920", "C. 6/1923", "D. 2/1930"], "c": 0}, {"q": "\"Bây giờ học thuyết nhiều... cách mạng nhất là chủ nghĩa Lênin\":", "a": ["A. Bản án chế độ thực dân Pháp", "B. Đường cách mệnh", "C. Con đường dẫn tôi đến chủ nghĩa Lênin", "D. Cương lĩnh chính trị đầu tiên"], "c": 1}, {"q": "Phương án đúng:", "a": ["A. Đồng thời với chính quốc", "B. Phụ thuộc vào chính quốc", "C. Song song với cách mạng tư sản", "D. Cách mạng giải phóng dân tộc ở thuộc địa có khả năng giành được thắng lợi trước cách mạng Vô sản ở chính quốc."], "c": 3}, {"q": "Chủ nghĩa cộng sản thích ứng ở đâu dễ hơn?", "a": ["A. Châu Âu", "B. Các nước tư bản phát triển", "C. Châu Phi", "D. Ở các nước châu Á"], "c": 3}, {"q": "Yếu tố nào là gốc của người cách mạng?", "a": ["A. Tài năng", "B. Văn hóa", "C. Nhân cách", "D. Đạo đức."], "c": 3}, {"q": "Đảng của công nhân, nhân dân lao động và dân tộc Việt Nam nhằm:", "a": ["A. Vị thế cầm quyền", "B. Xác định bản chất của Đảng", "C. Nguồn gốc ra đời", "D. Năng lực"], "c": 1}, {"q": "Kết hợp Mác-Lênin, phong trào công nhân và:", "a": ["A. Phong trào giải phóng dân tộc", "B. Phong trào yêu nước", "C. Phong trào hòa bình", "D. Phong trào đoàn kết"], "c": 1}, {"q": "Yếu tố giữ vị trí hàng đầu hình thành TTHCM:", "a": ["A. Chủ nghĩa yêu nước", "B. Đoàn kết", "C. Ham học hỏi", "D. Cần cù"], "c": 0}, {"q": "Giai đoạn hình thành cơ bản về con đường cách mạng (1920-1930):", "a": ["A. Trước năm 1911", "B. 1911-1920", "C. Từ năm 1920 đến năm 1930", "D. 1930-1945"], "c": 2}, {"q": "Nguyên tắc phân phối chủ yếu trong CNXH:", "a": ["A. Làm theo năng lực, hưởng theo nhu cầu", "B. Làm theo năng lực, hưởng theo lao động.", "C. Phân phối bình quân", "D. Làm ít hưởng đủ"], "c": 1}, {"q": "\"Đoàn kết là sức mạnh của chúng ta...\" nói về:", "a": ["A. Vai trò đoàn kết dân tộc", "B. Hình thức", "C. Nguyên tắc", "D. Nội dung"], "c": 0}, {"q": "\"Văn hóa......cho quốc dân đi\":", "a": ["A. Chỉ đường", "B. Mở đường", "C. Soi đường", "D. Dẫn đường"], "c": 2}, {"q": "\"Văn hóa phải soi đường cho quốc dân đi\" đề cập đến:", "a": ["A. Chức năng", "B. Tính chất", "C. Vai trò của văn hóa", "D. Đặc điểm"], "c": 2}, {"q": "Chọn phương án trả lời đúng nhất:", "a": ["A. Chỉ có Mác-Lênin", "B. Chỉ có TTHCM", "C. Cùng với chủ nghĩa Mác – Lênin, tư tưởng Hồ Chí Minh là nền tảng tư tưởng và kim chỉ nam cho hành động của Đảng ta.", "D. TTHCM là toàn diện"], "c": 2}, {"q": "Ưu điểm lớn nhất của học thuyết Khổng Tử:", "a": ["A. Hiếu học", "B. Quản lý bằng đạo đức", "C. Sự tu dưỡng đạo đức cá nhân", "D. Tự do"], "c": 2}, {"q": "Tư tưởng bồi dưỡng thế hệ trẻ:", "a": ["A. Không cần đạo đức", "B. Chỉ kiến thức", "C. Kết hợp giáo dục toàn diện đức – trí – thể – mỹ", "D. Chỉ kỹ năng"], "c": 2}, {"q": "Vì sao phải tôn trọng và phát huy quyền làm chủ của nhân dân?", "a": ["A. Giảm trách nhiệm Nhà nước", "B. Vì nhân dân là chủ thể sáng tạo lịch sử", "C. Yêu cầu quốc tế", "D. Hình thức"], "c": 1}];
+        let currentIdx = 0;
+        let score = 0;
+        let answered = false;
+
+        function initJumpSelect() {
+            const select = document.getElementById('jump-select');
+            quizData.forEach((_, idx) => {
+                const opt = document.createElement('option');
+                opt.value = idx;
+                opt.text = `Câu ${idx + 1}`;
+                select.appendChild(opt);
+            });
+        }
+
+        function jumpToQuestion() {
+            const select = document.getElementById('jump-select');
+            currentIdx = parseInt(select.value);
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const q = quizData[currentIdx];
+            document.getElementById('q-text').innerText = `Câu ${currentIdx + 1}: ${q.q}`;
+            document.getElementById('question-count').innerText = `Câu ${currentIdx + 1} / ${quizData.length}`;
+            document.getElementById('progress-fill').style.width = `${((currentIdx + 1) / quizData.length) * 100}%`;
+            document.getElementById('jump-select').value = currentIdx;
+            
+            const list = document.getElementById('options-list');
+            list.innerHTML = '';
+            answered = false;
+            document.getElementById('next-btn').disabled = true;
+
+            q.a.forEach((opt, i) => {
+                const div = document.createElement('div');
+                div.className = 'option';
+                div.innerText = opt;
+                div.onclick = () => checkAnswer(div, i);
+                list.appendChild(div);
+            });
+        }
+
+        function checkAnswer(el, idx) {
+            if (answered) return;
+            answered = true;
+            const correctIdx = quizData[currentIdx].c;
+            
+            if (idx === correctIdx) {
+                el.classList.add('correct');
+                score++;
+            } else {
+                el.classList.add('wrong');
+                const options = document.querySelectorAll('.option');
+                if(options[correctIdx]) {
+                    options[correctIdx].classList.add('correct');
+                }
+            }
+            
+            document.getElementById('score-display').innerText = `Đúng: ${score}`;
+            document.getElementById('next-btn').disabled = false;
+        }
+
+        function nextQuestion() {
+            currentIdx++;
+            if (currentIdx < quizData.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            document.getElementById('quiz-screen').style.display = 'none';
+            const screen = document.getElementById('result-screen');
+            screen.style.display = 'block';
+            document.getElementById('final-result').innerText = `${score}/${quizData.length}`;
+            
+            const percent = (score / quizData.length) * 100;
+            let msg = "";
+            if (percent === 100) msg = "Quá xuất sắc! Bạn là bậc thầy TTHCM.";
+            else if (percent >= 80) msg = "Rất tốt! Bạn nắm kiến thức rất vững.";
+            else if (percent >= 50) msg = "Tạm ổn, hãy ôn kỹ hơn các câu làm sai nhé.";
+            else msg = "Bạn cần cố gắng nhiều hơn để vượt qua kỳ thi.";
+            document.getElementById('feedback').innerText = msg;
+        }
+
+        if(quizData.length > 0) {
+            initJumpSelect();
+            loadQuestion();
+        } else {
+            document.getElementById('q-text').innerText = "Không tìm thấy câu hỏi nào.";
+        }
+    </script>
+</body>
+</html>
